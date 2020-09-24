@@ -17,48 +17,93 @@ import ProductDrawer from '../components/ProductDrawer';
 const Store = () => {
 
     const [drawer, setDrawer] = useState(false);
-    const [products, setProducts] = useState([]);
-    const [product, setProduct] = useState({
-        idProduct: "1022",
-        nameProduct: "Carpa blanca",
-        category: "Botanas",
-        description: "carpa blanca para 100 perosnas",
-        productQuantity: 3,
-        status: false
-    });
-
-    //Get products from API when the Store loads the first time
-    useEffect(() => {
-        
-        // Function that make a GET request for products via axios
-        async function fetchMyAPI() {
-            const { data } = await axios.get('http://localhost:8000/products');
-            setProducts(data);
-            console.log("Fetch products ", data)
-        }
-
-        fetchMyAPI()
-
-    }, []);
+    const [isEditing, setEditing] = useState(false);
+    const [product, setProduct] = useState({});
 
     // Makes the product drawer form for create or edit visible
     const handleToggleDrawer = () => {
+        setEditing(false);
+        setProduct({});
         setDrawer(!drawer);
+    }
+
+    const handleIdProduct = event => {
+        setProduct({
+            ...product,
+            idProduct: event.target.value
+        });
+    }
+
+    const handleNameProduct = event => {
+        setProduct({
+            ...product,
+            nameProduct: event.target.value
+        });
     }
 
     const handleCategory = event => {
         setProduct({
             ...product,
             category: event.target.value
-        })
+        });
+    }
+
+    const handleDescription = event => {
+        setProduct({
+            ...product,
+            description: event.target.value
+        });
+    }
+
+    const handleProductQuantity = event => {
+        setProduct({
+            ...product,
+            productQuantity: event.target.value
+        });
+    }
+
+    const handleStatus = event => {
+        setProduct({
+            ...product,
+            status: event.target.value == 1 ? true : false
+        });
+        console.log("Status", product.status);
     }
 
     const handleProductSubmit = async event => {
         event.preventDefault();
         try {
-            const producto = await axios.post('http://localhost:8000/products', product);
-            console.log("Product: ", producto);
+            if(!isEditing) {
+                const producto = await axios.post(`${process.env.API_URL}`, product);
+            } else {
+                const producto = await axios.put(`${process.env.API_URL}/${product._id}`, product);
+            }
+            if(producto) setDrawer(!drawer);
 
+        } catch (e) {
+            console.log("Error", e);
+        }
+    }
+
+    const handleEditProduct = async id => {
+        setEditing(true);
+        try {
+            const producto = await axios.get(`${process.env.API_URL}/${id}`, product);
+            console.log("prod", producto)
+            if(producto) {
+                producto.data.status = producto.data.status ? 1 : 0;
+                setProduct(producto.data);
+                setDrawer(true);
+            }
+
+        } catch (e) {
+            console.log("Error", e);
+        }
+    }
+
+    const handleDeleteProduct = async id => {
+        try {
+            const producto = await axios.delete(`${process.env.API_URL}/${ id }`);
         } catch (e) {
             console.log("Error", e);
         }
@@ -70,17 +115,8 @@ const Store = () => {
                 <title>Página Store</title>
             </Head>
             <Layout>
-                <Typography variant="h1" gutterBottom>
-                    Store
-                </Typography>
+                
                 <Grid container spacing={3}>
-                    <Grid item xs={12}>
-                        <Paper style={{ 'flexGrow': 1 }}>        
-                                <ProductTable 
-                                    products={ products }
-                                />
-                        </Paper>
-                    </Grid>
                     <Grid item xs={12}>
                         <Box style={{ 'marginTop': 24 }}>
                             <Button
@@ -94,13 +130,27 @@ const Store = () => {
                             </Button>
                         </Box>
                     </Grid>
+                    <Grid item xs={12}>
+                        <Paper style={{ 'flexGrow': 1 }}>        
+                                <ProductTable
+                                    handleDeleteProduct={ handleDeleteProduct }
+                                    handleEditProduct={ handleEditProduct }
+                                />
+                        </Paper>
+                    </Grid>
                 </Grid>
                 <ProductDrawer 
                     handleToggleDrawer={ handleToggleDrawer }
                     drawer={ drawer }
                     product= { product }
+                    handleIdProduct={ handleIdProduct }
+                    handleNameProduct={ handleNameProduct }
                     handleCategory={ handleCategory }
+                    handleDescription={ handleDescription }
+                    handleProductQuantity={ handleProductQuantity }
+                    handleStatus={ handleStatus }
                     handleProductSubmit={ handleProductSubmit }
+                    isEditing={ isEditing }
                 />
             </Layout>
         </>

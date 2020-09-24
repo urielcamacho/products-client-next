@@ -4,6 +4,7 @@ import {
         Box,
         Button,
         Container,
+        Hidden,
         Paper,
         Toolbar,
         Typography
@@ -15,10 +16,12 @@ const Layout = props => {
         <>
             <AppBar position="static">
                 <Toolbar>
-                    <Typography variant="h6" style={{ 'flexGrow': '1' }}>
-                        Prueba Técnica Roomie IT
-                    </Typography>
-                    <Box>
+                    <Hidden xsDown>
+                        <Typography variant="h6" style={{ 'flexGrow': '1' }}>
+                            Prueba Técnica Roomie IT
+                        </Typography>
+                    </Hidden>
+                    <Box justifyContent="center" display="flex">
                         <Button
                             variant="contained"
                             href="/store"
